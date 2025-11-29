@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开发者后台 - Focus.ai</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 背景视频 */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.8;
+            filter: brightness(0.8) contrast(1.1);
+        }
+        
+        .background-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .admin-panel {
+            background: rgba(255,255,255,0.95);
+            border-radius: 1rem;
+            padding: 2rem;
+            color: #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .data-section {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .data-section h2 {
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .data-table tr:hover {
+            background: #f1f5f9;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-success {
+            background: #10b981;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .mt-2 {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景视频 -->
+    <div class="background">
+        <video autoplay muted loop playsinline class="background-video">
+            <source src="素材/背景图2.mp4" type="video/mp4">
+            您的浏览器不支持视频播放。
+        </video>
+    </div>
+    
+    <div class="container">
+        <h1>Focus.ai 开发者后台</h1>
+        
+        <div class="admin-panel">
+            <!-- 统计概览 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-users">0</div>
+                    <div class="stat-label">总用户数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-music">0</div>
+                    <div class="stat-label">音乐总数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="active-users">0</div>
+                    <div class="stat-label">活跃用户</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="avg-duration">0</div>
+                    <div class="stat-label">平均时长</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="scene-music">0</div>
+                    <div class="stat-label">场景生成</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="imitate-music">0</div>
+                    <div class="stat-label">模仿生成</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="professional-music">0</div>
+                    <div class="stat-label">专业生成</div>
+                </div>
+            </div>
+            
+            <!-- 数据图表 -->
+            <div class="data-section">
+                <h2>数据图表</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- 音乐类型分布 -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <h3 style="margin-bottom: 1rem; color: #667eea;">音乐类型分布</h3>
+                        <canvas id="music-type-chart" width="400" height="300"></canvas>
+                    </div>
+                    <!-- 场景分布 -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <h3 style="margin-bottom: 1rem; color: #667eea;">场景分布</h3>
+                        <canvas id="scene-distribution-chart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据管理 -->
+            <div class="data-section">
+                <h2>音乐数据管理</h2>
+                <button class="btn btn-success" onclick="exportData()">导出数据</button>
+                <button class="btn btn-danger" onclick="clearAllData()">清空所有数据</button>
+                
+                <table class="data-table mt-2">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>标题</th>
+                            <th>类型</th>
+                            <th>生成时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="music-data">
+                        <!-- 音乐数据将通过JavaScript动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 用户数据 -->
+            <div class="data-section">
+                <h2>用户数据</h2>
+                <table class="data-table mt-2">
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>注册时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-data">
+                        <!-- 用户数据将通过JavaScript动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 场景标题映射
+        const sceneTitles = {
+            'focus': '专注',
+            'inspiration': '创作',
+            'meditation': '冥想'
+        };
+
+        // 初始化统计数据
+        function initStats() {
+            // 获取用户数据
+            const users = JSON.parse(localStorage.getItem('adhd-music-users') || '[]');
+            const musicLibrary = JSON.parse(localStorage.getItem('adhd-music-library') || '[]');
+            
+            // 更新统计数据
+            document.getElementById('total-users').textContent = users.length;
+            document.getElementById('total-music').textContent = musicLibrary.length;
+            
+            // 计算活跃用户（最近7天内有活动）
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            
+            const activeUsers = users.filter(user => {
+                // 这里简化处理，实际应该记录用户活动时间
+                return true;
+            });
+            
+            document.getElementById('active-users').textContent = activeUsers.length;
+            
+            // 计算平均音乐时长
+            if (musicLibrary.length > 0) {
+                const totalDuration = musicLibrary.reduce((sum, item) => sum + item.duration || 0, 0);
+                const avgDuration = Math.round(totalDuration / musicLibrary.length);
+                document.getElementById('avg-duration').textContent = avgDuration;
+            }
+            
+            // 统计不同类型的音乐数量
+            const sceneMusicCount = musicLibrary.filter(item => item.type === 'scene').length;
+            const imitateMusicCount = musicLibrary.filter(item => item.type === 'imitate').length;
+            const professionalMusicCount = musicLibrary.filter(item => item.type === 'professional').length;
+            
+            document.getElementById('scene-music').textContent = sceneMusicCount;
+            document.getElementById('imitate-music').textContent = imitateMusicCount;
+            document.getElementById('professional-music').textContent = professionalMusicCount;
+            
+            // 渲染音乐数据
+            renderMusicData(musicLibrary);
+            
+            // 渲染用户数据
+            renderUserData(users);
+            
+            // 绘制图表
+            drawMusicTypeChart(musicLibrary);
+            drawSceneDistributionChart(musicLibrary);
+        }
+        
+        // 绘制音乐类型分布图表
+        function drawMusicTypeChart(musicLibrary) {
+            const ctx = document.getElementById('music-type-chart').getContext('2d');
+            
+            // 计算不同类型的音乐数量
+            const sceneCount = musicLibrary.filter(item => item.type === 'scene').length;
+            const imitateCount = musicLibrary.filter(item => item.type === 'imitate').length;
+            const professionalCount = musicLibrary.filter(item => item.type === 'professional').length;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            
+            // 绘制饼图
+            const data = [sceneCount, imitateCount, professionalCount];
+            const labels = ['场景生成', '模仿生成', '专业生成'];
+            const colors = ['#667eea', '#764ba2', '#ec4899'];
+            
+            let total = data.reduce((sum, value) => sum + value, 0);
+            let startAngle = 0;
+            
+            for (let i = 0; i < data.length; i++) {
+                const sliceAngle = (data[i] / total) * 2 * Math.PI;
+                
+                // 绘制扇形
+                ctx.beginPath();
+                ctx.moveTo(200, 150);
+                ctx.arc(200, 150, 100, startAngle, startAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[i];
+                ctx.fill();
+                
+                // 绘制边框
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 绘制标签
+                const labelAngle = startAngle + sliceAngle / 2;
+                const labelX = 200 + Math.cos(labelAngle) * 130;
+                const labelY = 150 + Math.sin(labelAngle) * 130;
+                
+                ctx.fillStyle = '#333';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(labels[i] + ': ' + data[i], labelX, labelY);
+                
+                startAngle += sliceAngle;
+            }
+        }
+        
+        // 绘制场景分布图表
+        function drawSceneDistributionChart(musicLibrary) {
+            const ctx = document.getElementById('scene-distribution-chart').getContext('2d');
+            
+            // 计算不同场景的音乐数量
+            const focusCount = musicLibrary.filter(item => item.scene === 'focus' || item.scene === 'work' || item.scene === 'reading' || item.scene === 'coding').length;
+            const inspirationCount = musicLibrary.filter(item => item.scene === 'inspiration' || item.scene === 'creative').length;
+            const meditationCount = musicLibrary.filter(item => item.scene === 'meditation' || item.scene === 'relax').length;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            
+            // 绘制柱状图
+            const data = [focusCount, inspirationCount, meditationCount];
+            const labels = ['专注', '创作', '冥想'];
+            const colors = ['#667eea', '#764ba2', '#ec4899'];
+            
+            const barWidth = 80;
+            const barSpacing = 40;
+            const startX = 50;
+            const maxValue = Math.max(...data, 1);
+            
+            for (let i = 0; i < data.length; i++) {
+                const barHeight = (data[i] / maxValue) * 200;
+                const x = startX + i * (barWidth + barSpacing);
+                const y = 250 - barHeight;
+                
+                // 绘制柱子
+                ctx.fillStyle = colors[i];
+                ctx.fillRect(x, y, barWidth, barHeight);
+                
+                // 绘制边框
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, barWidth, barHeight);
+                
+                // 绘制标签
+                ctx.fillStyle = '#333';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(labels[i], x + barWidth / 2, 270);
+                
+                // 绘制数值
+                ctx.fillText(data[i], x + barWidth / 2, y - 10);
+            }
+        }
+        
+        // 渲染音乐数据
+        function renderMusicData(musicLibrary) {
+            const musicDataBody = document.getElementById('music-data');
+            
+            if (musicLibrary.length === 0) {
+                musicDataBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">暂无音乐数据</td></tr>';
+                return;
+            }
+            
+            musicDataBody.innerHTML = musicLibrary.map(item => `
+                <tr>
+                    <td>${item.id}</td>
+                    <td>${item.title}</td>
+                    <td>${item.type === 'scene' ? '场景生成' : item.type === 'imitate' ? '模仿生成' : '专业生成'}</td>
+                    <td>${new Date(item.createdAt).toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="deleteMusic('${item.id}')">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // 渲染用户数据
+        function renderUserData(users) {
+            const userDataBody = document.getElementById('user-data');
+            
+            if (users.length === 0) {
+                userDataBody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 2rem; color: #64748b;">暂无用户数据</td></tr>';
+                return;
+            }
+            
+            userDataBody.innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.username}</td>
+                    <td>${new Date(user.createdAt).toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="deleteUser('${user.id}')">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // 删除音乐
+        function deleteMusic(id) {
+            if (confirm('确定要删除这首音乐吗？')) {
+                const musicLibrary = JSON.parse(localStorage.getItem('adhd-music-library') || '[]');
+                const updatedLibrary = musicLibrary.filter(item => item.id !== id);
+                localStorage.setItem('adhd-music-library', JSON.stringify(updatedLibrary));
+                initStats(); // 重新初始化统计数据
+            }
+        }
+        
+        // 删除用户
+        function deleteUser(id) {
+            if (confirm('确定要删除这个用户吗？')) {
+                const users = JSON.parse(localStorage.getItem('adhd-music-users') || '[]');
+                const updatedUsers = users.filter(user => user.id !== id);
+                localStorage.setItem('adhd-music-users', JSON.stringify(updatedUsers));
+                initStats(); // 重新初始化统计数据
+            }
+        }
+
+        // 导出数据
+        function exportData() {
+            const data = {
+                musicLibrary: JSON.parse(localStorage.getItem('adhd-music-library') || '[]'),
+                users: JSON.parse(localStorage.getItem('adhd-music-users') || '[]'),
+                exportTime: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `adhd-music-data-${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 清空所有数据
+        function clearAllData() {
+            if (confirm('确定要清空所有数据吗？此操作不可恢复！')) {
+                localStorage.removeItem('adhd-music-library');
+                localStorage.removeItem('adhd-music-users');
+                alert('所有数据已清空！');
+                window.location.reload();
+            }
+        }
+
+        // 获取当前登录用户
+        function getCurrentUser() {
+            return JSON.parse(localStorage.getItem('adhd-music-current-user') || 'null');
+        }
+        
+        // 检查用户权限
+        function checkUserPermission() {
+            const currentUser = getCurrentUser();
+            if (!currentUser || currentUser.username !== 'kf123') {
+                // 无权限访问，重定向到首页
+                alert('您没有权限访问开发者后台');
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+        
+        // 初始化
+        window.onload = function() {
+            initStats();
+        };
+    </script>
+</body>
+</html>

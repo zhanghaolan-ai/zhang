@@ -1,0 +1,26 @@
+{
+  "name": "adhd-music-generator",
+  "version": "1.0.0",
+  "description": "ADHD音乐生成助手 - 用AI生成功能性音乐辅助集中注意力",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "adhd",
+    "music",
+    "ai",
+    "focus",
+    "productivity"
+  ],
+  "author": "",
+  "license": "MIT"
+}
