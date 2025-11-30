@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模仿模式 - Focus.ai</title>
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* CSS变量定义 - 现代化设计系统 */
+        :root {
+            --radius: 0.5rem;
+            --background: #0f172a;
+            --foreground: #f1f5f9;
+            --card: #1e293b;
+            --card-foreground: #f1f5f9;
+            --primary: #6366f1;
+            --primary-foreground: #ffffff;
+            --secondary: #8b5cf6;
+            --secondary-foreground: #ffffff;
+            --muted: #334155;
+            --muted-foreground: #94a3b8;
+            --accent: #ec4899;
+            --accent-foreground: #ffffff;
+            --destructive: #ef4444;
+            --destructive-foreground: #ffffff;
+            --border: #475569;
+            --input: #334155;
+            --ring: #6366f1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            
+            /* 阴影系统 */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            
+            /* 圆角系统 */
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --radius-3xl: 2rem;
+            --radius-full: 9999px;
+            
+            /* 过渡效果 */
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-fast: all 0.2s ease;
+            
+            /* 渐变效果 */
+            --gradient-primary: linear-gradient(135deg, #6366f1, #8b5cf6);
+            --gradient-secondary: linear-gradient(135deg, #ec4899, #f472b6);
+            --gradient-subtle: linear-gradient(180deg, #1e293b, #0f172a);
+        }
+        
+        /* 背景视频 */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.8;
+            filter: brightness(0.8) contrast(1.1);
+        }
+        
+        .background-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+        
+        /* 主体样式 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: var(--background);
+            color: var(--foreground);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            line-height: 1.6;
+            position: relative;
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* 容器样式 */
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--card);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+        }
+        
+        /* 头部样式 */
+        .header {
+            background: var(--gradient-primary);
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.15), transparent 50%);
+            pointer-events: none;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #fff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 1;
+            letter-spacing: -0.025em;
+        }
+        
+        .header p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            opacity: 0.95;
+        }
+        
+        /* 导航栏样式 */
+        .nav {
+            background: var(--muted);
+            padding: 1rem 2rem;
+            display: flex;
+            gap: 1rem;
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--muted-foreground);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+            pointer-events: none;
+        }
+        
+        .nav-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .nav-btn:hover {
+            color: var(--foreground);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        
+        .nav-btn.active {
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.15);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        
+        .nav-btn span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 内容区域样式 */
+        .content {
+            padding: 2rem;
+            background: var(--card);
+        }
+        
+        /* 标题样式 */
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: var(--foreground);
+            text-align: center;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.025em;
+        }
+        
+        /* 表单样式 */
+        .form {
+            display: grid;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-section {
+            background: var(--muted);
+            padding: 2rem;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 修复下拉菜单选项显示问题 */
+        select option {
+            background: var(--card);
+            color: var(--foreground);
+        }
+        
+        .form-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .form-section:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .form-section:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .form-section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--foreground);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        /* 上传区域样式 */
+        .upload-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-2xl);
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.15);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.25);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: var(--shadow-xl);
+            border-style: solid;
+        }
+        
+        .upload-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .upload-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--foreground);
+            line-height: 1.4;
+        }
+        
+        .upload-hint {
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        
+        .upload-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .upload-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .upload-btn:hover::before {
+            left: 100%;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .upload-btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .audio-upload-input {
+            display: none;
+        }
+        
+        /* 上传信息样式 */
+        .upload-info {
+            font-size: 0.875rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+        
+        .upload-info.success {
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--success);
+        }
+        
+        .upload-info.error {
+            color: var(--error);
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--error);
+        }
+        
+        /* 滑块样式 */
+        .slider-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .slider-label {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--foreground);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .slider-value {
+            font-size: 0.875rem;
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.15);
+            padding: 0.375rem 1rem;
+            border-radius: var(--radius-full);
+            font-weight: 700;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        
+        .slider-container {
+            background: var(--background);
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm) inset;
+        }
+        
+        .range-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) inset;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        
+        .range-slider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: var(--progress, 50%);
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            border-radius: var(--radius-full);
+            transition: width 0.1s ease;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5), 0 0 30px rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Chrome, Safari, Edge */
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            cursor: pointer;
+            box-shadow: 
+                0 0 0 3px rgba(255, 255, 255, 0.1),
+                0 4px 16px rgba(99, 102, 241, 0.6),
+                0 0 20px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .range-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 
+                0 0 0 3px rgba(255, 255, 255, 0.2),
+                0 6px 20px rgba(99, 102, 241, 0.8),
+                0 0 30px rgba(99, 102, 241, 0.6);
+        }
+        
+        .range-slider::-webkit-slider-thumb:active {
+            transform: scale(1.1);
+            box-shadow: 
+                0 0 0 3px rgba(255, 255, 255, 0.3),
+                0 8px 24px rgba(99, 102, 241, 1),
+                0 0 40px rgba(99, 102, 241, 0.8);
+        }
+        
+        /* Firefox */
+        .range-slider::-moz-range-track {
+            width: 100%;
+            height: 8px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+            outline: none;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) inset;
+        }
+        
+        .range-slider::-moz-range-progress {
+            height: 8px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5), 0 0 30px rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .range-slider::-moz-range-thumb {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            cursor: pointer;
+            box-shadow: 
+                0 0 0 3px rgba(255, 255, 255, 0.1),
+                0 4px 16px rgba(99, 102, 241, 0.6),
+                0 0 20px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .range-slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 
+                0 0 0 3px rgba(255, 255, 255, 0.2),
+                0 6px 20px rgba(99, 102, 241, 0.8),
+                0 0 30px rgba(99, 102, 241, 0.6);
+        }
+        
+        .range-slider::-moz-range-thumb:active {
+            transform: scale(1.1);
+            box-shadow: 
+                0 0 0 3px rgba(255, 255, 255, 0.3),
+                0 8px 24px rgba(99, 102, 241, 1),
+                0 0 40px rgba(99, 102, 241, 0.8);
+        }
+        
+        /* 生成进度条样式 */
+        .generation-progress-container {
+            margin-top: 1.5rem;
+        }
+        
+        .generation-progress-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+            box-shadow: var(--shadow-sm) inset;
+        }
+        
+        .generation-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: var(--radius-full);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+            position: relative;
+        }
+        
+        .generation-progress-fill::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translate(50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4), 0 0 0 3px var(--background);
+        }
+        
+        .generation-progress-text {
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--foreground);
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            margin-bottom: 0.5rem;
+        }
+        
+        .generation-remaining-time {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--muted-foreground);
+            font-weight: 500;
+        }
+        
+        /* 生成按钮样式 */
+        .generate-section {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        
+        .generate-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 1.25rem 3rem;
+            border-radius: var(--radius-2xl);
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-lg);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .generate-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .generate-btn:hover::before {
+            left: 100%;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .generate-btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: var(--shadow-md);
+            pointer-events: none;
+        }
+        
+        /* 播放器样式 */
+        .player {
+            background: var(--muted);
+            padding: 2rem;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            margin-top: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .player::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+        
+        .player.visible {
+            opacity: 1;
+            transform: translateY(0);
+            animation: fadeInUp 0.6s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .player-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .player-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--foreground);
+            line-height: 1.4;
+        }
+        
+        .player-subtitle {
+            font-size: 1rem;
+            color: var(--muted-foreground);
+            opacity: 0.9;
+        }
+        
+        /* 波形显示样式 */
+        .waveform-container {
+            background: var(--background);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+        
+        #waveform {
+            width: 100%;
+            height: 150px;
+            background: var(--card);
+            border-radius: var(--radius-md);
+            display: block;
+            border: 1px solid var(--border);
+        }
+        
+        /* 音频播放器样式 */
+        .audio-player {
+            width: 100%;
+            margin-bottom: 2rem;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            background: var(--background);
+            border: 1px solid var(--border);
+        }
+        
+        .audio-player::-webkit-media-controls {
+            background: var(--background);
+            color: var(--foreground);
+        }
+        
+        /* 均衡器样式 */
+        .eq-section {
+            margin: 2rem 0;
+        }
+        
+        .eq-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--foreground);
+            text-align: center;
+            letter-spacing: -0.025em;
+        }
+        
+        .eq-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .eq-control {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .eq-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--muted-foreground);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .eq-slider-container {
+            background: var(--background);
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm) inset;
+        }
+        
+        /* 播放器控制按钮样式 */
+        .player-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: none;
+            background: var(--gradient-primary);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .control-btn:hover::before {
+            width: 200px;
+            height: 200px;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .control-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+        
+        .control-btn.secondary {
+            background: var(--muted);
+            border: 2px solid var(--border);
+            color: var(--muted-foreground);
+        }
+        
+        .control-btn.secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        
+        .control-btn span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 状态显示样式 */
+        .status {
+            text-align: center;
+            font-size: 0.875rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            margin-top: 1rem;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+        
+        .status.success {
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--success);
+        }
+        
+        .status.error {
+            color: var(--error);
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--error);
+        }
+        
+        .status.loading {
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid var(--primary);
+        }
+        
+        /* 加载动画样式 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 0.5rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 1.5rem;
+            }
+            
+            .nav {
+                padding: 1rem;
+                flex-wrap: wrap;
+            }
+            
+            .form-section {
+                padding: 1.5rem;
+            }
+            
+            .eq-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .player-controls {
+                gap: 1rem;
+            }
+            
+            .control-btn {
+                width: 56px;
+                height: 56px;
+                font-size: 1.25rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+            
+            .container {
+                border-radius: var(--radius-xl);
+            }
+            
+            .header {
+                padding: 1.5rem;
+            }
+            
+            .header h1 {
+                font-size: 1.75rem;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+            
+            .upload-area {
+                padding: 2rem 1rem;
+            }
+            
+            .upload-icon {
+                font-size: 3rem;
+            }
+            
+            .upload-text {
+                font-size: 1.125rem;
+            }
+            
+            .generate-btn {
+                padding: 1rem 2rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景视频 -->
+    <div class="background">
+        <video autoplay muted loop playsinline class="background-video">
+            <source src="background2.mp4" type="video/mp4">
+            您的浏览器不支持视频播放。
+        </video>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Focus.ai</h1>
+            <p>用AI生成功能性音乐，辅助你集中注意力</p>
+        </div>
+        
+        <div class="nav">
+            <button class="nav-btn" onclick="window.location.href='scene.html'">场景模式</button>
+            <button class="nav-btn active" onclick="window.location.href='imitate.html'">模仿模式</button>
+            <button class="nav-btn" onclick="window.location.href='professional.html'">专业模式</button>
+            <button class="nav-btn" onclick="window.location.href='index.html'">返回首页</button>
+        </div>
+        
+        <div class="content">
+            <h2 class="section-title">模仿模式</h2>
+            
+            <form class="form">
+                <!-- 上传音频文件 -->
+                <div class="form-section">
+                    <h3 class="form-section-title">🎵 上传音频文件</h3>
+                    <div class="upload-section">
+                        <label for="imitate-upload" class="upload-area">
+                            <div class="upload-content">
+                                <div class="upload-icon">📁</div>
+                                <div class="upload-text">上传本地音频文件</div>
+                                <div class="upload-hint">支持 MP3, WAV, OGG 格式</div>
+                                <button type="button" class="upload-btn">选择文件</button>
+                            </div>
+                        </label>
+                        <input type="file" id="imitate-upload" class="audio-upload-input" accept="audio/*">
+                        <div class="upload-info" id="imitate-upload-info"></div>
+                    </div>
+                </div>
+                
+                <!-- 生成时长设置 -->
+                <div class="form-section">
+                    <h3 class="form-section-title">⏱️ 生成时长设置</h3>
+                    <div class="slider-section">
+                        <div class="slider-label">
+                            <span>生成时长</span>
+                            <span class="slider-value" id="imitate-duration-value">2</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" id="imitate-duration" class="range-slider" min="1" max="3" value="2" step="0.5">
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; color: var(--text-muted); margin-top: 0.5rem;">
+                            <span>1分钟</span>
+                            <span>3分钟</span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- 生成按钮 -->
+            <div class="generate-section">
+                <button class="generate-btn" id="imitate-generate">开始模仿生成</button>
+            </div>
+            
+            <!-- 生成进度条 -->
+            <div class="generation-progress-container" id="generation-progress-container" style="display: none;">
+                <div class="generation-progress-bar">
+                    <div class="generation-progress-fill" id="generation-progress-fill"></div>
+                </div>
+                <div class="generation-progress-text" id="generation-progress-text">0%</div>
+                <div class="generation-remaining-time" id="generation-remaining-time">预计剩余时间：计算中...</div>
+            </div>
+            
+            <!-- 播放器 -->
+            <div class="player" id="player">
+                <div class="player-header">
+                    <div class="player-title">生成的音乐</div>
+                    <div class="player-subtitle" id="player-subtitle">为你的专注场景量身定制</div>
+                </div>
+                
+                <!-- 波形显示 -->
+                <div class="waveform-container">
+                    <canvas id="waveform"></canvas>
+                </div>
+                
+                <!-- 音频播放器 -->
+                <audio class="audio-player" id="audio-player" controls>
+                    您的浏览器不支持音频播放。
+                 </audio>
+                
+                <!-- 均衡器 (EQ) -->
+                <div class="eq-section">
+                    <h3 class="eq-title">均衡器</h3>
+                    <div class="eq-controls">
+                        <!-- 低频 (Bass) -->
+                        <div class="eq-control">
+                            <div class="eq-label">低频 (Bass)</div>
+                            <div class="eq-slider-container">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                    <span>0</span>
+                                    <span id="imitate-eq-bass-value">50</span>
+                                    <span>100</span>
+                                </div>
+                                <input type="range" id="imitate-eq-bass" class="range-slider" min="0" max="100" value="50" step="5">
+                            </div>
+                        </div>
+                        
+                        <!-- 中频 (Mids) -->
+                        <div class="eq-control">
+                            <div class="eq-label">中频 (Mids)</div>
+                            <div class="eq-slider-container">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                    <span>0</span>
+                                    <span id="imitate-eq-mids-value">50</span>
+                                    <span>100</span>
+                                </div>
+                                <input type="range" id="imitate-eq-mids" class="range-slider" min="0" max="100" value="50" step="5">
+                            </div>
+                        </div>
+                        
+                        <!-- 高频 (Treble) -->
+                        <div class="eq-control">
+                            <div class="eq-label">高频 (Treble)</div>
+                            <div class="eq-slider-container">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                    <span>0</span>
+                                    <span id="imitate-eq-treble-value">50</span>
+                                    <span>100</span>
+                                </div>
+                                <input type="range" id="imitate-eq-treble" class="range-slider" min="0" max="100" value="50" step="5">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 播放器控制按钮 -->
+                <div class="player-controls">
+                    <button class="control-btn secondary" id="stop-btn">⏹️</button>
+                    <button class="control-btn" id="play-btn">▶️</button>
+                    <button class="control-btn secondary" id="pause-btn">⏸️</button>
+                </div>
+                
+                <!-- 状态显示 -->
+                <div class="status" id="status"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 模仿模式关键词映射
+        const imitateKeywords = ['模仿', '相似', 'lofi', 'chill', '放松', '专注'];
+        
+        // 生成时长滑块
+        const imitateDurationSlider = document.getElementById('imitate-duration');
+        const imitateDurationValue = document.getElementById('imitate-duration-value');
+        
+        // 音频上传
+        const imitateUpload = document.getElementById('imitate-upload');
+        const imitateUploadInfo = document.getElementById('imitate-upload-info');
+        const uploadArea = document.querySelector('.upload-area');
+        
+        // 生成按钮
+        const generateBtn = document.getElementById('imitate-generate');
+        
+        // 播放器
+        const player = document.getElementById('player');
+        const audioPlayer = document.getElementById('audio-player');
+        const status = document.getElementById('status');
+        const playerSubtitle = document.getElementById('player-subtitle');
+        
+        // 播放器控制按钮
+        const playBtn = document.getElementById('play-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        
+        // 波形显示
+        const waveformCanvas = document.getElementById('waveform');
+        
+        // 均衡器
+        const bassSlider = document.getElementById('imitate-eq-bass');
+        const midSlider = document.getElementById('imitate-eq-mids');
+        const trebleSlider = document.getElementById('imitate-eq-treble');
+        
+        const bassValue = document.getElementById('imitate-eq-bass-value');
+        const midValue = document.getElementById('imitate-eq-mids-value');
+        const trebleValue = document.getElementById('imitate-eq-treble-value');
+        
+        // 音频上下文和节点
+        let audioContext;
+        let source;
+        let analyser;
+        let gainNode;
+        let bassFilter;
+        let midFilter;
+        let trebleFilter;
+        let dataArray;
+        let canvasCtx;
+        let animationId;
+        
+        // 初始化生成时长滑块
+        function initDurationSlider() {
+            imitateDurationSlider.addEventListener('input', () => {
+                imitateDurationValue.textContent = imitateDurationSlider.value;
+            });
+        }
+        
+        // 初始化音频上传功能
+        function initAudioUpload() {
+            // 文件选择事件
+            imitateUpload.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    // 验证文件类型
+                    const validTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3'];
+                    if (validTypes.includes(file.type)) {
+                        imitateUploadInfo.textContent = `已选择文件: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+                        imitateUploadInfo.className = 'upload-info success';
+                    } else {
+                        imitateUploadInfo.textContent = '不支持的文件格式，请选择 MP3, WAV 或 OGG 格式';
+                        imitateUploadInfo.className = 'upload-info error';
+                        imitateUpload.value = ''; // 清空选择
+                    }
+                }
+            });
+            
+            // 拖拽事件
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('audio/')) {
+                    imitateUpload.files = e.dataTransfer.files;
+                    // 触发change事件
+                    const event = new Event('change');
+                    imitateUpload.dispatchEvent(event);
+                }
+            });
+        }
+        
+        // 从本地曲库随机选择音乐
+        async function searchAndDownloadMusic(updateProgress) {
+            // 获取随机关键词
+            const randomKeyword = imitateKeywords[Math.floor(Math.random() * imitateKeywords.length)];
+            
+            // 模拟50000-100000秒的生成时间
+            const totalDuration = Math.floor(Math.random() * 50000) + 50000;
+            const startTime = Date.now();
+            
+            // 模拟从本地music_library文件夹获取音乐列表，只使用LOFI1和LOFI2
+            const localMusicList = [
+                { title: 'LOFI1', url: 'music_library/LOFI1.mp3' },
+                { title: 'LOFI2', url: 'music_library/LOFI2.mp3' }
+            ];
+            
+            if (localMusicList.length === 0) {
+                throw new Error('本地曲库中没有音乐');
+            }
+            
+            // 随机选择一首音乐
+            const randomMusic = localMusicList[Math.floor(Math.random() * localMusicList.length)];
+            
+            // 模拟进度增长
+            let lastProgress = 0;
+            
+            // 循环直到达到总时长
+            while (Date.now() - startTime < totalDuration) {
+                // 计算已经过去的时间
+                const elapsed = Date.now() - startTime;
+                
+                // 根据时间计算进度 - 使用S型曲线实现非匀速运动
+                const progressRatio = elapsed / totalDuration;
+                // S型曲线公式：4x³ - 6x² + 3x
+                const sCurveProgress = 4 * Math.pow(progressRatio, 3) - 6 * Math.pow(progressRatio, 2) + 3 * progressRatio;
+                const currentProgress = Math.min(100, Math.floor(sCurveProgress * 100));
+                
+                // 只有当进度发生变化时才更新
+                if (currentProgress !== lastProgress) {
+                    // 计算剩余时间
+                    const estimatedTotalTime = totalDuration;
+                    const estimatedElapsedTime = elapsed;
+                    const estimatedRemainingTime = estimatedTotalTime - estimatedElapsedTime;
+                    
+                    // 更新进度
+                    let statusText = '';
+                    if (currentProgress < 30) {
+                        statusText = '正在分析参考音乐...';
+                    } else if (currentProgress < 60) {
+                        statusText = '正在生成音乐结构...';
+                    } else if (currentProgress < 90) {
+                        statusText = '正在优化音乐细节...';
+                    } else {
+                        statusText = '正在准备最终文件...';
+                    }
+                    
+                    updateProgress(currentProgress, statusText, estimatedRemainingTime);
+                    lastProgress = currentProgress;
+                }
+                
+                // 等待50毫秒后再次检查
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+            
+            // 确保最终进度为100%
+            updateProgress(100, '音乐生成完成！');
+            
+            // 返回音乐信息
+            return {
+                title: randomMusic.title,
+                url: randomMusic.url
+            };
+        }
+        
+        // 初始化生成功能
+        function initGenerateFunction() {
+            // 获取生成进度条元素
+            const generationProgressContainer = document.getElementById('generation-progress-container');
+            const generationProgressFill = document.getElementById('generation-progress-fill');
+            const generationProgressText = document.getElementById('generation-progress-text');
+            const generationRemainingTime = document.getElementById('generation-remaining-time');
+            
+            generateBtn.addEventListener('click', async () => {
+                generateBtn.disabled = true;
+                generateBtn.innerHTML = '生成中... <div class="loading"></div>';
+                status.textContent = '';
+                status.className = 'status';
+                
+                // 显示进度条
+                generationProgressContainer.style.display = 'block';
+                generationProgressFill.style.width = '0%';
+                generationProgressText.textContent = '0%';
+                generationRemainingTime.textContent = '预计剩余时间：计算中...';
+                
+                // 更新进度的函数
+                const updateProgress = (percentage, message = '', remainingTime = 0) => {
+                    generationProgressFill.style.width = `${percentage}%`;
+                    generationProgressText.textContent = `${percentage}% ${message}`;
+                    status.textContent = message;
+                    status.className = 'status';
+                    
+                    // 更新剩余时间显示
+                    if (percentage < 100) {
+                        const adjustedTime = remainingTime / 3500;
+                        const minutes = Math.floor(adjustedTime / 60);
+                        const seconds = Math.floor(adjustedTime % 60);
+                        generationRemainingTime.textContent = `预计剩余时间：${minutes}分${seconds}秒`;
+                    } else {
+                        generationRemainingTime.textContent = '预计剩余时间：0秒';
+                    }
+                };
+                
+                try {
+                    let audioUrl;
+                    let subtitle;
+                    
+                    // 模仿模式
+                    const uploadedFile = imitateUpload.files[0];
+                    if (uploadedFile) {
+                        // 如果上传了文件，使用上传的文件
+                        updateProgress(30, '正在处理上传的文件...');
+                        audioUrl = URL.createObjectURL(uploadedFile);
+                        subtitle = `模仿${uploadedFile.name}生成`;
+                        updateProgress(100, '音乐生成完成！');
+                    } else {
+                        // 如果没有上传文件，从本地曲库选择音乐
+                        const music = await searchAndDownloadMusic(updateProgress);
+                        audioUrl = music.url;
+                        subtitle = `模仿${music.title}生成`;
+                    }
+                    
+                    // 设置音频源
+                    audioPlayer.src = audioUrl;
+                    playerSubtitle.textContent = subtitle;
+                    
+                    // 显示播放器
+                    player.classList.add('visible');
+                    
+                    // 保存到曲库
+                    saveToLibrary(subtitle, audioUrl);
+                    
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = '开始模仿生成';
+                    status.textContent = '音乐生成完成！已保存到曲库';
+                    status.className = 'status success';
+                    
+                    // 初始化音频上下文和均衡器
+                    initAudioContext();
+                    
+                    // 隐藏进度条
+                    setTimeout(() => {
+                        generationProgressContainer.style.display = 'none';
+                    }, 1000);
+                } catch (error) {
+                    console.error('生成音乐时出错:', error);
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = '开始模仿生成';
+                    status.textContent = '生成失败，请重试';
+                    status.className = 'status error';
+                    
+                    // 隐藏进度条
+                    generationProgressContainer.style.display = 'none';
+                }
+            });
+        }
+        
+        // 初始化播放器控制
+        function initPlayerControls() {
+            playBtn.addEventListener('click', () => {
+                audioPlayer.play();
+                status.textContent = '正在播放...';
+                status.className = 'status loading';
+            });
+            
+            pauseBtn.addEventListener('click', () => {
+                audioPlayer.pause();
+                status.textContent = '已暂停';
+                status.className = 'status';
+            });
+            
+            stopBtn.addEventListener('click', () => {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+                status.textContent = '已停止';
+                status.className = 'status';
+            });
+            
+            // 音频播放结束事件
+            audioPlayer.addEventListener('ended', () => {
+                status.textContent = '播放结束';
+                status.className = 'status';
+            });
+        }
+        
+        // 初始化音频上下文和均衡器
+        function initAudioContext() {
+            // 清除之前的动画
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            
+            // 创建音频上下文
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // 创建音频源
+            source = audioContext.createMediaElementSource(audioPlayer);
+            
+            // 创建分析器节点
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            
+            // 创建增益节点
+            gainNode = audioContext.createGain();
+            
+            // 创建滤波器
+            bassFilter = audioContext.createBiquadFilter();
+            bassFilter.type = 'lowshelf';
+            bassFilter.frequency.value = 250;
+            bassFilter.gain.value = 0;
+            
+            midFilter = audioContext.createBiquadFilter();
+            midFilter.type = 'peaking';
+            midFilter.frequency.value = 1000;
+            midFilter.Q.value = 1;
+            midFilter.gain.value = 0;
+            
+            trebleFilter = audioContext.createBiquadFilter();
+            trebleFilter.type = 'highshelf';
+            trebleFilter.frequency.value = 4000;
+            trebleFilter.gain.value = 0;
+            
+            // 连接节点
+            source.connect(bassFilter);
+            bassFilter.connect(midFilter);
+            midFilter.connect(trebleFilter);
+            trebleFilter.connect(analyser);
+            analyser.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // 初始化波形显示
+            initWaveform();
+            
+            // 初始化均衡器
+            initEQ();
+        }
+        
+        // 初始化波形显示
+        function initWaveform() {
+            canvasCtx = waveformCanvas.getContext('2d');
+            const bufferLength = analyser.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+            
+            // 设置画布尺寸
+            waveformCanvas.width = waveformCanvas.offsetWidth;
+            waveformCanvas.height = waveformCanvas.offsetHeight;
+            
+            // 绘制波形
+            function drawWaveform() {
+                animationId = requestAnimationFrame(drawWaveform);
+                
+                // 获取频率数据
+                analyser.getByteFrequencyData(dataArray);
+                
+                // 清空画布
+                canvasCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+                
+                // 设置渐变
+                const gradient = canvasCtx.createLinearGradient(0, 0, 0, waveformCanvas.height);
+                gradient.addColorStop(0, '#6366f1');
+                gradient.addColorStop(0.5, '#8b5cf6');
+                gradient.addColorStop(1, '#ec4899');
+                
+                // 绘制波形
+                canvasCtx.fillStyle = gradient;
+                const barWidth = (waveformCanvas.width / bufferLength) * 2.5;
+                let x = 0;
+                
+                for (let i = 0; i < bufferLength; i++) {
+                    const barHeight = (dataArray[i] / 255) * waveformCanvas.height;
+                    canvasCtx.fillRect(x, waveformCanvas.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 1;
+                }
+            }
+            
+            drawWaveform();
+        }
+        
+        // 初始化均衡器
+        function initEQ() {
+            // 低频控制
+            bassSlider.addEventListener('input', () => {
+                bassValue.textContent = bassSlider.value;
+                const gain = (bassSlider.value - 50) / 10;
+                bassFilter.gain.value = gain;
+            });
+            
+            // 中频控制
+            midSlider.addEventListener('input', () => {
+                midValue.textContent = midSlider.value;
+                const gain = (midSlider.value - 50) / 10;
+                midFilter.gain.value = gain;
+            });
+            
+            // 高频控制
+            trebleSlider.addEventListener('input', () => {
+                trebleValue.textContent = trebleSlider.value;
+                const gain = (trebleSlider.value - 50) / 10;
+                trebleFilter.gain.value = gain;
+            });
+        }
+        
+        // 保存音乐到曲库
+        function saveToLibrary(title, url) {
+            // 从localStorage获取现有曲库
+            let musicLibrary = JSON.parse(localStorage.getItem('adhd-music-library') || '[]');
+            
+            // 创建新音乐对象
+            const newMusic = {
+                id: Date.now(),
+                title: title,
+                url: url,
+                type: 'imitate',
+                duration: imitateDurationSlider.value,
+                createdAt: new Date().toISOString()
+            };
+            
+            // 添加到曲库
+            musicLibrary.push(newMusic);
+            
+            // 保存回localStorage
+            localStorage.setItem('adhd-music-library', JSON.stringify(musicLibrary));
+        }
+        
+        // 初始化所有功能
+        function init() {
+            initDurationSlider();
+            initAudioUpload();
+            initGenerateFunction();
+            initPlayerControls();
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
